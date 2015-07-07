@@ -21,17 +21,16 @@ public class ServerThread extends Thread implements Runnable {
     private PrintStream out = null;
     public boolean bye = false;
     private boolean isConnected = false;
-    private boolean isStoped = false;
+    public boolean stop = false;
     
     private Handler mHandler = null; 
-    private Message mMessage = null;
     
     
     public ServerThread(Handler handler) {
     	this.mHandler = handler;
-    	this.mMessage = new Message();
     	try {
-			this.server = new ServerSocket(8888);
+			this.server = new ServerSocket(8888); 
+			Log.d(TAG,"server init");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -43,9 +42,9 @@ public class ServerThread extends Thread implements Runnable {
     public void run(){
 		if(this.server == null){
 			Log.e(TAG,"server is null");
-			this.isStoped = true;
+			this.stop = true;
 		}
-    	while(!isStoped){
+    	while(!stop){
     		try {   				
     			this.client = server.accept();
     			if(client.isConnected()){
@@ -66,6 +65,7 @@ public class ServerThread extends Thread implements Runnable {
     					bye = true;
     					Log.d(TAG,"client disconnect!!");
     				}else{
+    					Message mMessage = new Message();
     					mMessage.obj = str;
     					Log.d(TAG,str);
     					mHandler.sendMessage(mMessage);
@@ -95,7 +95,7 @@ public class ServerThread extends Thread implements Runnable {
 		}
     	this.bye = true;
     	this.isConnected = false;
-    	this.isStoped = true;
+    	this.stop = true;
     }
 
 }
