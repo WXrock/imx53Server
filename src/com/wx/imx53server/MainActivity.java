@@ -94,7 +94,6 @@ public class MainActivity extends Activity {
 			
 		};
 		
-		//this.server = new Thread(new ServerThread(mServerHandler));
 		this.server = new ServerThread(mServerHandler);
 		this.server.start();
 		

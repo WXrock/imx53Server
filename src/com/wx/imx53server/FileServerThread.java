@@ -93,6 +93,7 @@ public class FileServerThread extends Thread implements Runnable{
 				dos.close();
                 dis.close();
 				client.close();
+				this.isConnected = false;
 				Log.d(TAG,"send finish");
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
