@@ -19,26 +19,33 @@ import android.view.SurfaceView;
 
 public class MyCamera implements SurfaceHolder.Callback {
 	
+	private static MyCamera singleton = null;
 	private boolean ispriv = false;
-	private Camera mCamera = null;
+	private static Camera mCamera = null;
 	private SurfaceView mSurfaceView = null;
 	private static final String TAG = "MyCamera";
 	//private JniCamera mJniCameara = null;
-	private SurfaceHolder mholder = null;
+	private static SurfaceHolder mholder = null;
 	private int camNum = 0;
 	private int mode = 0;  //0 for preview,1 for picture
 	
-	public MyCamera (SurfaceView surfaceView){
-		this.mSurfaceView = surfaceView;
-		this.mholder = mSurfaceView.getHolder();
-		mholder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-		mholder.addCallback(this);
-		//mCamera = Camera.open();
-		//mJniCameara = new JniCamera();
+	private MyCamera(){
+		if(mCamera == null){
+			mCamera = Camera.open();
+			Log.d(TAG,"open!!!!!!!!!!!!");
+		}
 	}
 	
-	public void prepareAndroidCamera(SurfaceHolder holder){
-			mCamera = Camera.open();
+	public static MyCamera getInstance(){
+		if(singleton == null){
+			singleton = new MyCamera();
+		}
+		return singleton;
+	}
+	
+	public void prepareAndroidCamera(){
+			if(mCamera == null)
+				Log.d(TAG,"test!!!!!!");
 			Parameters parameter = mCamera.getParameters();
 			parameter.setPreviewFrameRate(15);
 			//parameter.setPreviewFormat(ImageFormat.YV12);
@@ -46,12 +53,6 @@ public class MyCamera implements SurfaceHolder.Callback {
 			parameter.setPictureSize(640, 480);
 			parameter.setPictureFormat(ImageFormat.JPEG);
 			mCamera.setParameters(parameter);
-			try {
-				mCamera.setPreviewDisplay(holder);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
 		
 	}
 	
@@ -62,11 +63,15 @@ public class MyCamera implements SurfaceHolder.Callback {
 	
 	public void stopPreview(){
 		ispriv = false;
+		mholder.removeCallback(this);
+		mCamera.setPreviewCallback(null);
 		mCamera.stopPreview();
 	}
 	
 	public void release(){
 		mCamera.release();
+		mCamera = null;
+		singleton = null;
 	}
 	
 	public int takePicture(){
@@ -133,6 +138,19 @@ public class MyCamera implements SurfaceHolder.Callback {
 		JniCamera.setMode(mode);
 	}
 	
+	public void setSurface(SurfaceView surfaceView){
+		this.mSurfaceView = surfaceView;
+		this.mholder = mSurfaceView.getHolder();
+		mholder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+		mholder.addCallback(this);
+		try {
+			mCamera.setPreviewDisplay(mholder);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	@Override
 	public void surfaceChanged(SurfaceHolder holder, int format, int width,
 			int height) {
@@ -141,12 +159,14 @@ public class MyCamera implements SurfaceHolder.Callback {
 
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
-		prepareAndroidCamera(holder);
+		prepareAndroidCamera();
 		Log.d(TAG,"surface created,prepare for android camera!");
 	}
 
 	@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
+		stopPreview();
+		this.ispriv = false;
 		mCamera.release();
 		Log.d(TAG,"surface destoryed,release resource");
 	}
@@ -169,5 +189,10 @@ public class MyCamera implements SurfaceHolder.Callback {
 	
 	public int getMode(){
 		return this.mode;
+	}
+	
+	public Camera getCamera(){
+		return mCamera;
+		
 	}
 }

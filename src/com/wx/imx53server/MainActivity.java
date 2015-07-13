@@ -2,11 +2,18 @@ package com.wx.imx53server;
 
 import java.io.File;
 
+import net.majorkernelpanic.streaming.SessionBuilder;
+import net.majorkernelpanic.streaming.rtsp.RtspServer;
+import net.majorkernelpanic.streaming.rtsp.RtspServer.CallbackListener;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
 import android.app.Activity;
+import android.content.ComponentName;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.util.Log;
 import android.view.Menu;
 import android.view.SurfaceView;
@@ -32,6 +39,9 @@ public class MainActivity extends Activity {
 	private FileServerThread fileServer = null;
 	private Handler mServerHandler = null;
 	
+	private RtspServer mRtspServer;
+	private Imx53ServerApplication mApplication;
+	
 	private static final String TAG = "MainActivity";
 	private static final String PATH = "/sdcard/";
 
@@ -40,6 +50,7 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		mApplication = (Imx53ServerApplication) getApplication();
 		
 		this.mPreviewBut = (Button) findViewById(R.id.preview);
 		this.mChangeBut = (Button) findViewById(R.id.change);
@@ -48,10 +59,16 @@ public class MainActivity extends Activity {
 		this.mSurfaceView = (SurfaceView) findViewById(R.id.surfaceView);
 		this.camInfo = (TextView) findViewById(R.id.cam_info);
 		this.str = new StringBuilder(camInfo.getText());
-		this.mCamera = new MyCamera(mSurfaceView);
+		
+		this.mCamera = MyCamera.getInstance();
+		mCamera.setSurface(mSurfaceView);
+		mCamera.prepareAndroidCamera();
 		this.mCamera.setNum(0);
 		
-	
+		SessionBuilder.getInstance().setSurfaceHolder(mCamera.getHolder());
+		this.startService(new Intent(MainActivity.this,RtspServer.class));
+		bindService(new Intent(MainActivity.this,RtspServer.class), mRtspServerConnection, BIND_AUTO_CREATE);
+		
 		this.fileServer = new FileServerThread();
 		this.fileServer.start();//call setFile before start thread
 		
@@ -69,10 +86,11 @@ public class MainActivity extends Activity {
 					changeCamFun();
 				}else if(str.equals("pic")){
 					Log.d(TAG,str);
+					//mRtspServer.stop();
 					takePicFun();
 				}else if(str.equals("preview")){
 					Log.d(TAG,str);
-					previewFun();
+					//previewFun();
 				}else if(str.equals("mode")){
 					Log.d(TAG,str);
 					modeFun();
@@ -163,20 +181,25 @@ public class MainActivity extends Activity {
 				Toast.makeText(MainActivity.this, "start prewview before take a picture", Toast.LENGTH_SHORT).show();
 			}
 		}else{          //use jni take picture method
-			mCamera.stopPreview();
-			mCamera.release();
+			//mCamera.stopPreview();
+			//mCamera.release();
 			if(mCamera.takePicture() <0){
 				Toast.makeText(MainActivity.this, "take picture error", Toast.LENGTH_SHORT).show();
 			}else{
 				Toast.makeText(MainActivity.this, "take picture success", Toast.LENGTH_SHORT).show();
 			}
-			mCamera.setMode(0);
-			mCamera.prepareAndroidCamera(mCamera.getHolder());
-			mCamera.startPreview();
+			//mCamera = MyCamera.getInstance();
+			//mCamera.setMode(0);
+			//mCamera.setSurface(mSurfaceView);
+			//mCamera.prepareAndroidCamera();
+			//mCamera.startPreview();
 		}
 	}
 	
 	private void previewFun(){
+		this.mCamera = MyCamera.getInstance();
+		mCamera.setSurface(mSurfaceView);
+		mCamera.prepareAndroidCamera();
 		if(mCamera.isPriv()){
 			mCamera.stopPreview();
 			mPreviewBut.setText("start preview");
@@ -186,13 +209,63 @@ public class MainActivity extends Activity {
 		}
 	}
 	
+private ServiceConnection mRtspServerConnection = new ServiceConnection() {
+		
+		@Override
+		public void onServiceDisconnected(ComponentName name) {
+			Log.d(TAG,"STOP");
+		}
+		
+		@Override
+		public void onServiceConnected(ComponentName name, IBinder service) {
+			mRtspServer = ((RtspServer.LocalBinder)service).getService();
+			mRtspServer.addCallbackListener(mRtspCallbackListener);
+			mRtspServer.start();
+			//displayIpAddress();
+			Log.d(TAG,"START");
+		}
+	};
+	
+private RtspServer.CallbackListener mRtspCallbackListener = new CallbackListener() {
+		
+		@Override
+		public void onMessage(RtspServer server, int message) {
+			if (message==RtspServer.MESSAGE_STREAMING_STARTED) {
+				Log.d(TAG,"MESSAGE_STREAMING_STARTED");
+			} else if (message==RtspServer.MESSAGE_STREAMING_STOPPED) {
+				Log.d(TAG,"MESSAGE_STREAMING_STOPPED");
+			}
+			
+		}
+		
+		@Override
+		public void onError(RtspServer server, Exception e, int error) {
+			if (error == RtspServer.ERROR_BIND_FAILED) {
+				Log.d(TAG,"ERROR_BIND_FAILED");
+			}
+			
+		}
+	};
+	
 	@Override
 	protected void onDestroy() {
 		mCamera.setMode(0);
 		mCamera.clearNum();
 		this.server.release();
+		stopService(new Intent(this,RtspServer.class));
 		super.onDestroy();
 	}
 
+	@Override
+	protected void onStop() {
+		if(mRtspServer!= null){
+			mRtspServer.stop();
+			mRtspServer.removeCallbackListener(mRtspCallbackListener);
+			unbindService(mRtspServerConnection);
+		}
+		super.onStop();
+	}
+
+	
 
 }
