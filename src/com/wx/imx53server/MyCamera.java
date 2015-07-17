@@ -21,7 +21,7 @@ public class MyCamera implements SurfaceHolder.Callback {
 	
 	private static MyCamera singleton = null;
 	private boolean ispriv = false;
-	private static Camera mCamera = null;
+	private Camera mCamera = null;
 	private SurfaceView mSurfaceView = null;
 	private static final String TAG = "MyCamera";
 	//private JniCamera mJniCameara = null;
@@ -30,10 +30,7 @@ public class MyCamera implements SurfaceHolder.Callback {
 	private int mode = 0;  //0 for preview,1 for picture
 	
 	private MyCamera(){
-		if(mCamera == null){
-			mCamera = Camera.open();
-			Log.d(TAG,"open!!!!!!!!!!!!");
-		}
+		Log.d(TAG,"new MyCamera");
 	}
 	
 	public static MyCamera getInstance(){
@@ -43,16 +40,40 @@ public class MyCamera implements SurfaceHolder.Callback {
 		return singleton;
 	}
 	
+	public void openCamera(){
+		if(mCamera == null){
+			mCamera = Camera.open();
+			Log.d(TAG,"open!!!!!!!!!!!!");
+		}else{
+			Log.e(TAG,"Already opened!!!");
+		}
+	}
+	
 	public void prepareAndroidCamera(){
-			if(mCamera == null)
-				Log.d(TAG,"test!!!!!!");
-			Parameters parameter = mCamera.getParameters();
-			parameter.setPreviewFrameRate(15);
-			//parameter.setPreviewFormat(ImageFormat.YV12);
-			parameter.setPreviewSize(640, 480);
-			parameter.setPictureSize(640, 480);
-			parameter.setPictureFormat(ImageFormat.JPEG);
-			mCamera.setParameters(parameter);
+//			if(mCamera == null)
+//				Log.e(TAG,"camera is null");
+//			Parameters parameter = mCamera.getParameters();
+//			parameter.setPreviewFrameRate(15);
+//			//parameter.setPreviewFormat(ImageFormat.YV12);
+//			parameter.setPreviewSize(640, 480);
+//			parameter.setPictureSize(640, 480);
+//			parameter.setPictureFormat(ImageFormat.JPEG);
+//			mCamera.setParameters(parameter);
+			
+//			if(mSurfaceView != null){
+//				this.mholder = mSurfaceView.getHolder();
+//				mholder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+//				mholder.addCallback(this);
+//				try {
+//					mCamera.setPreviewDisplay(mholder);
+//				} catch (IOException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
+//			}else{
+//				Log.e(TAG,"surfaceVIew is null!!!!!!");
+//			}
+
 		
 	}
 	
@@ -63,19 +84,26 @@ public class MyCamera implements SurfaceHolder.Callback {
 	
 	public void stopPreview(){
 		ispriv = false;
-		mholder.removeCallback(this);
-		mCamera.setPreviewCallback(null);
-		mCamera.stopPreview();
+			mCamera.stopPreview();
+			mCamera.setPreviewCallback(null);
+			mholder.removeCallback(this);
+		
 	}
 	
 	public void release(){
 		mCamera.release();
 		mCamera = null;
-		singleton = null;
+		//mSurfaceView = null;
+		//mholder = null;
+		//singleton = null;
 	}
 	
 	public int takePicture(){
 		int ret = 0;
+		if(mCamera != null){
+			this.stopPreview();
+			this.release();
+		}
 		if((ret = JniCamera.prepareBuffer())<0){
 			return ret;
 		}
@@ -140,15 +168,6 @@ public class MyCamera implements SurfaceHolder.Callback {
 	
 	public void setSurface(SurfaceView surfaceView){
 		this.mSurfaceView = surfaceView;
-		this.mholder = mSurfaceView.getHolder();
-		mholder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-		mholder.addCallback(this);
-		try {
-			mCamera.setPreviewDisplay(mholder);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 	
 	@Override
@@ -165,13 +184,18 @@ public class MyCamera implements SurfaceHolder.Callback {
 
 	@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
-		stopPreview();
+		//stopPreview();
 		this.ispriv = false;
-		mCamera.release();
+		//mCamera.release();
 		Log.d(TAG,"surface destoryed,release resource");
 	}
 	
 	public SurfaceHolder getHolder(){
+		//mSurfaceView.setVisibility(SurfaceView.INVISIBLE);
+		//mSurfaceView.setVisibility(SurfaceView.VISIBLE);
+		this.mholder = mSurfaceView.getHolder();
+		mholder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+		mholder.addCallback(this);
 		return mholder;
 	}
 	
@@ -192,7 +216,10 @@ public class MyCamera implements SurfaceHolder.Callback {
 	}
 	
 	public Camera getCamera(){
-		return mCamera;
+		if(mCamera!= null)
+			return mCamera;
+		else
+			return null;
 		
 	}
 }

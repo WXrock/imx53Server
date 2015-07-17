@@ -25,6 +25,8 @@ import java.io.IOException;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
+import com.wx.imx53server.MyCamera;
+
 import net.majorkernelpanic.streaming.mp4.MP4Config;
 import net.majorkernelpanic.streaming.rtp.H264Packetizer;
 import android.content.SharedPreferences;
@@ -127,12 +129,12 @@ public class H264Stream extends VideoStream {
 		
 		// Stops the preview if needed
 		if (mPreviewStarted) {
-			lockCamera();
+			//lockCamera();
 			try {
-				mCamera.stopPreview();
+				MyCamera.getInstance().stopPreview();
 			} catch (Exception e) {}
 			mPreviewStarted = false;
-		}
+		} 
 		
 		try {
 			Thread.sleep(5000);
@@ -141,10 +143,10 @@ public class H264Stream extends VideoStream {
 			e1.printStackTrace();
 		}
 		
-		unlockCamera();
+		//unlockCamera();
 
 		mMediaRecorder = new MediaRecorder();
-		mMediaRecorder.setCamera(mCamera.getCamera());
+		mMediaRecorder.setCamera(MyCamera.getInstance().getCamera());
 		mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
 		mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
 		mMediaRecorder.setMaxDuration(1000);
@@ -192,7 +194,7 @@ public class H264Stream extends VideoStream {
 			} catch (Exception e) {}
 			mMediaRecorder.release();
 			mMediaRecorder = null;
-			lockCamera();
+			//lockCamera();
 		}
 
 		// Retrieve SPS & PPS & ProfileId with MP4Config

@@ -29,10 +29,10 @@ public class MainActivity extends Activity {
 	private Button mPictureBut;
 	private Button mPreviewBut;
 	private Button mModeBut;
-	private SurfaceView mSurfaceView;
+	public SurfaceView mSurfaceView;
 	private TextView camInfo;
 	
-	private MyCamera mCamera;
+	//private MyCamera mCamera;
 	private StringBuilder str;
 	
 	private ServerThread server = null;
@@ -60,12 +60,13 @@ public class MainActivity extends Activity {
 		this.camInfo = (TextView) findViewById(R.id.cam_info);
 		this.str = new StringBuilder(camInfo.getText());
 		
-		this.mCamera = MyCamera.getInstance();
-		mCamera.setSurface(mSurfaceView);
-		mCamera.prepareAndroidCamera();
-		this.mCamera.setNum(0);
+		//this.mCamera = MyCamera.getInstance();
+		//MyCamera.getInstance().openCamera();
+		MyCamera.getInstance().setSurface(mSurfaceView);
+		//MyCamera.getInstance().prepareAndroidCamera();
+		MyCamera.getInstance().setNum(0);
 		
-		SessionBuilder.getInstance().setSurfaceHolder(mCamera.getHolder());
+		SessionBuilder.getInstance().setSurfaceHolder(MyCamera.getInstance().getHolder());
 		this.startService(new Intent(MainActivity.this,RtspServer.class));
 		bindService(new Intent(MainActivity.this,RtspServer.class), mRtspServerConnection, BIND_AUTO_CREATE);
 		
@@ -150,63 +151,52 @@ public class MainActivity extends Activity {
 	}
 
 	private void modeFun(){
-		if(mCamera.getMode() == 0){
-			mCamera.setMode(1);
+		if(MyCamera.getInstance().getMode() == 0){
+			MyCamera.getInstance().setMode(1);
+			//JniCamera.setMode(1);
 			MainActivity.this.mModeBut.setText("Preview Mode");
 			MainActivity.this.mChangeBut.setClickable(false);
 		}else{
-			mCamera.setMode(0);
+			MyCamera.getInstance().setMode(0);
+			//JniCamera.setMode(0);
 			MainActivity.this.mModeBut.setText("Picture Mode");
 			MainActivity.this.mChangeBut.setClickable(true);
 		}
 	}
 	
 	private void changeCamFun(){
-		if(mCamera.changeCam() < 0){
+		if(MyCamera.getInstance().changeCam() < 0){
 			Log.e(TAG,"write gpio failed");
 		}else{
 			MainActivity.this.str.replace(str.length()-1, str.length(), 
-					String.valueOf(MainActivity.this.mCamera.getNum()));
+					String.valueOf(MyCamera.getInstance().getNum()));
 			MainActivity.this.camInfo.setText(MainActivity.this.str.toString());
 		}	
 	}
 	
 	private void takePicFun(){
-		if(mCamera.getMode() == 0){ //use android's take picture method
-			if(mCamera.isPriv()){
-
-				String path = Environment.getExternalStorageDirectory().getAbsolutePath()+"/test"+mCamera.getNum()+".jpg";
-				mCamera.shootAt(path);
-			}else{
-				Toast.makeText(MainActivity.this, "start prewview before take a picture", Toast.LENGTH_SHORT).show();
-			}
-		}else{          //use jni take picture method
-			//mCamera.stopPreview();
-			//mCamera.release();
-			if(mCamera.takePicture() <0){
-				Toast.makeText(MainActivity.this, "take picture error", Toast.LENGTH_SHORT).show();
-			}else{
-				Toast.makeText(MainActivity.this, "take picture success", Toast.LENGTH_SHORT).show();
-			}
-			//mCamera = MyCamera.getInstance();
-			//mCamera.setMode(0);
-			//mCamera.setSurface(mSurfaceView);
-			//mCamera.prepareAndroidCamera();
-			//mCamera.startPreview();
-		}
+//		if(MyCamera.getInstance().getMode() == 0){ //use android's take picture method
+//			if(MyCamera.getInstance().isPriv()){
+//				Log.d(TAG,"take pcture android");
+//				String path = Environment.getExternalStorageDirectory().getAbsolutePath()+"/test"+MyCamera.getInstance().getNum()+".jpg";
+//				MyCamera.getInstance().shootAt(path);
+//			}else{
+//				Toast.makeText(MainActivity.this, "start prewview before take a picture", Toast.LENGTH_SHORT).show();
+//			}
+//		}else{          //use jni take picture method
+			Log.d(TAG,"take pcture jni");
+			JniCamera.prepareBuffer();
+			JniCamera.takePicture();
+//			if(MyCamera.getInstance().takePicture() <0){
+//				Toast.makeText(MainActivity.this, "take picture error", Toast.LENGTH_SHORT).show();
+//			}else{
+//				Toast.makeText(MainActivity.this, "take picture success", Toast.LENGTH_SHORT).show();
+//			}
+//		}
 	}
 	
 	private void previewFun(){
-		this.mCamera = MyCamera.getInstance();
-		mCamera.setSurface(mSurfaceView);
-		mCamera.prepareAndroidCamera();
-		if(mCamera.isPriv()){
-			mCamera.stopPreview();
-			mPreviewBut.setText("start preview");
-		}else{
-			mCamera.startPreview();
-			mPreviewBut.setText("stop preview");
-		}
+
 	}
 	
 private ServiceConnection mRtspServerConnection = new ServiceConnection() {
@@ -247,10 +237,11 @@ private RtspServer.CallbackListener mRtspCallbackListener = new CallbackListener
 		}
 	};
 	
+	
 	@Override
 	protected void onDestroy() {
-		mCamera.setMode(0);
-		mCamera.clearNum();
+		MyCamera.getInstance().setMode(0);
+		MyCamera.getInstance().clearNum();
 		this.server.release();
 		stopService(new Intent(this,RtspServer.class));
 		super.onDestroy();

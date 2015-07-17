@@ -14,7 +14,7 @@ public class Imx53ServerApplication extends Application {
 	public VideoQuality videoQuality = new VideoQuality(640,480,15,5000000);
           
 	/** By default AMR is the audio encoder. */
-	public int audioEncoder = SessionBuilder.AUDIO_AMRNB;
+	public int audioEncoder = SessionBuilder.AUDIO_NONE;
 
 	/** By default H.263 is the video encoder. */
 	public int videoEncoder = SessionBuilder.VIDEO_H264;

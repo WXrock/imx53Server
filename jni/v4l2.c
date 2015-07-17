@@ -560,7 +560,8 @@ JNIEXPORT jint JNICALL Java_com_wx_imx53server_JniCamera_takePicture(JNIEnv* env
     for(i=0;i<NUM;i++) {
         free(tmp_buf[i]);
     }
-
+    
+    writeGPIO(3,MODE,0);
     LOGI("Take Picture Done.\n");
 
     return ret;
