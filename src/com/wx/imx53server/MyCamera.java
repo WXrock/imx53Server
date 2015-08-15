@@ -24,8 +24,7 @@ public class MyCamera implements SurfaceHolder.Callback {
 	private Camera mCamera = null;
 	private SurfaceView mSurfaceView = null;
 	private static final String TAG = "MyCamera";
-	//private JniCamera mJniCameara = null;
-	private static SurfaceHolder mholder = null;
+	private SurfaceHolder mholder = null;
 	private int camNum = 0;
 	private int mode = 0;  //0 for preview,1 for picture
 	
@@ -43,9 +42,9 @@ public class MyCamera implements SurfaceHolder.Callback {
 	public void openCamera(){
 		if(mCamera == null){
 			mCamera = Camera.open();
-			Log.d(TAG,"open!!!!!!!!!!!!");
+			Log.d(TAG,"camera open!!!!!!!!!!!!");
 		}else{
-			Log.e(TAG,"Already opened!!!");
+			Log.e(TAG,"camera Already opened!!!");
 		}
 	}
 	
@@ -93,9 +92,6 @@ public class MyCamera implements SurfaceHolder.Callback {
 	public void release(){
 		mCamera.release();
 		mCamera = null;
-		//mSurfaceView = null;
-		//mholder = null;
-		//singleton = null;
 	}
 	
 	public int takePicture(){
@@ -191,8 +187,6 @@ public class MyCamera implements SurfaceHolder.Callback {
 	}
 	
 	public SurfaceHolder getHolder(){
-		//mSurfaceView.setVisibility(SurfaceView.INVISIBLE);
-		//mSurfaceView.setVisibility(SurfaceView.VISIBLE);
 		this.mholder = mSurfaceView.getHolder();
 		mholder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 		mholder.addCallback(this);

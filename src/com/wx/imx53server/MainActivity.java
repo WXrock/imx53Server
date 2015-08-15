@@ -23,7 +23,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements OnClickListener{
 
 	private Button mChangeBut;
 	private Button mPictureBut;
@@ -44,6 +44,8 @@ public class MainActivity extends Activity {
 	
 	private static final String TAG = "MainActivity";
 	private static final String PATH = "/sdcard/";
+	private static final String PIC_DONE = "pic_done";
+	private static final String PIC_FAIL = "pic_fail";
 
 	
 	@Override
@@ -116,52 +118,25 @@ public class MainActivity extends Activity {
 		this.server = new ServerThread(mServerHandler);
 		this.server.start();
 		
-		mPreviewBut.setOnClickListener(new OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				previewFun();			
-			}
-		});
-		
-		mPictureBut.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				takePicFun();								
-			}
-		});
-		
-		mChangeBut.setOnClickListener(new OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				changeCamFun();
-			}
-		});
-		
-		mModeBut.setOnClickListener(new OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				modeFun();
-			}
-		});
-		
-		
+		mPreviewBut.setOnClickListener(this);
+		mPictureBut.setOnClickListener(this);
+		mChangeBut.setOnClickListener(this);
+		mModeBut.setOnClickListener(this);
+	
 	}
 
 	private void modeFun(){
-		if(MyCamera.getInstance().getMode() == 0){
+//		if(MyCamera.getInstance().getMode() == 0){
 			MyCamera.getInstance().setMode(1);
-			//JniCamera.setMode(1);
-			MainActivity.this.mModeBut.setText("Preview Mode");
-			MainActivity.this.mChangeBut.setClickable(false);
-		}else{
-			MyCamera.getInstance().setMode(0);
-			//JniCamera.setMode(0);
-			MainActivity.this.mModeBut.setText("Picture Mode");
-			MainActivity.this.mChangeBut.setClickable(true);
-		}
+//			//JniCamera.setMode(1);
+//			MainActivity.this.mModeBut.setText("Preview Mode");
+//			MainActivity.this.mChangeBut.setClickable(false);
+//		}else{
+//			MyCamera.getInstance().setMode(0);
+//			//JniCamera.setMode(0);
+//			MainActivity.this.mModeBut.setText("Picture Mode");
+//			MainActivity.this.mChangeBut.setClickable(true);
+//		}
 	}
 	
 	private void changeCamFun(){
@@ -185,13 +160,13 @@ public class MainActivity extends Activity {
 //			}
 //		}else{          //use jni take picture method
 			Log.d(TAG,"take pcture jni");
-			JniCamera.prepareBuffer();
-			JniCamera.takePicture();
-//			if(MyCamera.getInstance().takePicture() <0){
-//				Toast.makeText(MainActivity.this, "take picture error", Toast.LENGTH_SHORT).show();
-//			}else{
-//				Toast.makeText(MainActivity.this, "take picture success", Toast.LENGTH_SHORT).show();
-//			}
+			if(MyCamera.getInstance().takePicture() <0){
+				Log.e(TAG,PIC_FAIL);
+				server.piture_done(PIC_FAIL);
+			}else{
+				Log.d(TAG,PIC_DONE);
+				server.piture_done(PIC_DONE);
+			}
 //		}
 	}
 	
@@ -255,6 +230,26 @@ private RtspServer.CallbackListener mRtspCallbackListener = new CallbackListener
 			unbindService(mRtspServerConnection);
 		}
 		super.onStop();
+	}
+
+	@Override
+	public void onClick(View v) {
+		switch(v.getId()){
+		case R.id.change:
+			changeCamFun();
+			break;
+		case R.id.mode:
+			modeFun();
+			break;
+		case R.id.preview:
+			previewFun();
+			break;
+		case R.id.take_picture:
+			takePicFun();
+			break;
+		
+		}
+		
 	}
 
 	

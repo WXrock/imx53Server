@@ -3,7 +3,9 @@ package com.wx.imx53server;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -18,7 +20,7 @@ public class ServerThread extends Thread implements Runnable {
 //    private String str ;
     private ServerSocket server = null;
     private BufferedReader buf = null;
-    private PrintStream out = null;
+    private OutputStream out = null;
     public boolean bye = false;
     private boolean isConnected = false;
     public boolean stop = false;
@@ -57,7 +59,7 @@ public class ServerThread extends Thread implements Runnable {
     			e1.printStackTrace();
     		}   	
     		try{
-    			out = new PrintStream(client.getOutputStream());
+    			out = client.getOutputStream();
     			buf = new BufferedReader(new InputStreamReader(client.getInputStream()));
     			while(!bye){
     				String str = buf.readLine();
@@ -98,4 +100,22 @@ public class ServerThread extends Thread implements Runnable {
     	this.stop = true;
     }
 
+    public void piture_done(String com){
+    	if(client == null){
+    		Log.e(TAG,"CLIENT IS NULL");
+    		return;
+    	}
+    	try {
+			out.write(com.getBytes("UTF-8"));
+			out.write('\n');
+			Log.d(TAG,"Send picture done");
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	
+    }
 }
