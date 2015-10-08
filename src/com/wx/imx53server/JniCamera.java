@@ -17,6 +17,7 @@ public class JniCamera {
 	public static native int prepareBuffer();
 	public static native int camSel();
 	public static native int setMode(int mode);
+	public static native int setFlip();
 
 	static {
 		System.loadLibrary("picture");

@@ -216,4 +216,9 @@ public class MyCamera implements SurfaceHolder.Callback {
 			return null;
 		
 	}
+	
+	public void flip(){
+		JniCamera.setFlip();
+		Log.d(TAG,"flip is set!!!");
+	}
 }

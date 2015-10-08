@@ -24,6 +24,7 @@
 
 #include <asm/types.h>
 #include <linux/videodev2.h>
+#include <linux/mxc_v4l2.h>
 
 #include<jni.h>
 #include <time.h>
@@ -84,6 +85,7 @@ struct v4l2_format fmt;
 struct v4l2_streamparm parm;
 struct v4l2_requestbuffers reqbuf;
 struct v4l2_buffer buf;
+struct v4l2_control control;
 unsigned char *starter;
 unsigned char *newBuf;
 int fd_gpio;
@@ -149,6 +151,16 @@ static void get_format()
 	return;
 }
 
+static void setControl() {
+    control.id = V4L2_CID_MXC_VF_ROT;
+    control.value = V4L2_MXC_CAM_ROTATE_VERT_FLIP;
+    int ret = ioctl(fd,VIDIOC_S_CTRL,&control);
+    if(ret <0) {
+        LOGI("flip failed (%d)\n", ret);
+    }else{
+        LOGI("flip set (%d)\n", ret);
+    }
+}
 
 static int set_format()
 {
@@ -392,6 +404,15 @@ JNIEXPORT jint JNICALL Java_com_wx_imx53server_JniCamera_setMode(JNIEnv* env,
 	int i = val;
 	setMode(i);
 	return 0;
+}
+
+JNIEXPORT jint JNICALL Java_com_wx_imx53server_JniCamera_setFlip(JNIEnv* env,
+                                        jobject thiz)
+{
+    fd = open_device();
+    setControl();
+    close(fd);
+    return 0;
 }
 
 JNIEXPORT jint JNICALL Java_com_wx_imx53server_JniCamera_prepareBuffer(JNIEnv* env,

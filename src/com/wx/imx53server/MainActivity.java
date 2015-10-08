@@ -46,6 +46,8 @@ public class MainActivity extends Activity implements OnClickListener{
 	private static final String PATH = "/sdcard/";
 	private static final String PIC_DONE = "pic_done";
 	private static final String PIC_FAIL = "pic_fail";
+	
+	private boolean isFlip = false;
 
 	
 	@Override
@@ -110,6 +112,9 @@ public class MainActivity extends Activity implements OnClickListener{
 						fileServer.setFile(fileLength, fileName);
 					}
 
+				}else if(str.equals("flip")){
+					Log.d(TAG,str);
+					flipFun();
 				}
 			}
 			
@@ -170,8 +175,10 @@ public class MainActivity extends Activity implements OnClickListener{
 //		}
 	}
 	
-	private void previewFun(){
-
+	private void flipFun(){
+		if(this.isFlip == false){
+			MyCamera.getInstance().flip();
+		}
 	}
 	
 private ServiceConnection mRtspServerConnection = new ServiceConnection() {
@@ -242,7 +249,7 @@ private RtspServer.CallbackListener mRtspCallbackListener = new CallbackListener
 			modeFun();
 			break;
 		case R.id.preview:
-			previewFun();
+			//previewFun();
 			break;
 		case R.id.take_picture:
 			takePicFun();
