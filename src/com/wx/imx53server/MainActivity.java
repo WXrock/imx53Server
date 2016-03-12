@@ -10,10 +10,13 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.preference.PreferenceManager;
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.util.Log;
 import android.view.Menu;
 import android.view.SurfaceView;
@@ -41,6 +44,8 @@ public class MainActivity extends Activity implements OnClickListener{
 	
 	private RtspServer mRtspServer;
 	private Imx53ServerApplication mApplication;
+	private SharedPreferences pref;
+	private Editor edit;
 	
 	private static final String TAG = "MainActivity";
 	private static final String PATH = "/sdcard/";
@@ -63,9 +68,11 @@ public class MainActivity extends Activity implements OnClickListener{
 		this.mSurfaceView = (SurfaceView) findViewById(R.id.surfaceView);
 		this.camInfo = (TextView) findViewById(R.id.cam_info);
 		this.str = new StringBuilder(camInfo.getText());
+		this.pref = PreferenceManager.getDefaultSharedPreferences(this);
+		this.edit = pref.edit();
 		
 		//this.mCamera = MyCamera.getInstance();
-		//MyCamera.getInstance().openCamera();
+		//qqMyCamera.getInstance().openCamera();
 		MyCamera.getInstance().setSurface(mSurfaceView);
 		//MyCamera.getInstance().prepareAndroidCamera();
 		MyCamera.getInstance().setNum(0);
@@ -92,7 +99,19 @@ public class MainActivity extends Activity implements OnClickListener{
 				}else if(str.equals("pic")){
 					Log.d(TAG,str);
 					//mRtspServer.stop();
-					takePicFun();
+					if(takePicFun() == 0){
+						File dir = new File(PATH);
+						if(dir.exists() && dir.list()!= null){
+							for(int i=0;i<8;i++){
+						fileName[i] = PATH+"frame_jpeg_new"+i+".JPG";
+						Log.d(TAG,fileName[i]);
+								files[i] = new File(fileName[i]);
+								fileLength[i] = (int)files[i].length();
+							}
+							fileServer.setFile(fileLength, fileName);
+						}
+					}
+					
 				}else if(str.equals("preview")){
 					Log.d(TAG,str);
 					//previewFun();
@@ -101,20 +120,18 @@ public class MainActivity extends Activity implements OnClickListener{
 					modeFun();
 				}else if(str.equals("send")){
 					Log.d(TAG,str);
-					File dir = new File(PATH);
-					if(dir.exists() && dir.list()!= null){
-						for(int i=0;i<8;i++){
-					fileName[i] = PATH+"frame_jpeg_new"+i+".JPG";
-					Log.d(TAG,fileName[i]);
-							files[i] = new File(fileName[i]);
-							fileLength[i] = (int)files[i].length();
-						}
-						fileServer.setFile(fileLength, fileName);
-					}
 
 				}else if(str.equals("flip")){
 					Log.d(TAG,str);
-					flipFun();
+					flipFun(); 
+				}else if(str.equals("wifi")){
+					edit.putBoolean(Imx53ServerApplication.WIFI,true);
+					edit.putBoolean(Imx53ServerApplication.Ethernet, false);
+					edit.commit();
+				}else if(str.equals("ethernet")) {
+					edit.putBoolean(Imx53ServerApplication.WIFI,false);
+					edit.putBoolean(Imx53ServerApplication.Ethernet, true);
+					edit.commit();
 				}
 			}
 			
@@ -154,7 +171,7 @@ public class MainActivity extends Activity implements OnClickListener{
 		}	
 	}
 	
-	private void takePicFun(){
+	private int takePicFun(){
 //		if(MyCamera.getInstance().getMode() == 0){ //use android's take picture method
 //			if(MyCamera.getInstance().isPriv()){
 //				Log.d(TAG,"take pcture android");
@@ -168,9 +185,11 @@ public class MainActivity extends Activity implements OnClickListener{
 			if(MyCamera.getInstance().takePicture() <0){
 				Log.e(TAG,PIC_FAIL);
 				server.piture_done(PIC_FAIL);
+				return -1;
 			}else{
 				Log.d(TAG,PIC_DONE);
 				server.piture_done(PIC_DONE);
+				return 0;
 			}
 //		}
 	}

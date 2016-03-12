@@ -146,7 +146,9 @@ public class H264Stream extends VideoStream {
 		//unlockCamera();
 
 		mMediaRecorder = new MediaRecorder();
-		mMediaRecorder.setCamera(MyCamera.getInstance().getCamera());
+		//if(MyCamera.getInstance().getCamera()==null)
+		//	Log.e(TAG,"ERROR!!!!!!!!!!!!!1");
+		//mMediaRecorder.setCamera(MyCamera.getInstance().getCamera());
 		mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
 		mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
 		mMediaRecorder.setMaxDuration(1000);

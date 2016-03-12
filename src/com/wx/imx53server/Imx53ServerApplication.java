@@ -9,6 +9,8 @@ import android.preference.PreferenceManager;
 
 public class Imx53ServerApplication extends Application {
 	public static final String TAG = "RtspServerApplication";
+	public static final String WIFI = "wifi";
+	public static final String Ethernet = "ethernet";
 	
 	/** Default quality of video streams. */
 	public VideoQuality videoQuality = new VideoQuality(640,480,15,5000000);

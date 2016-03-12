@@ -68,11 +68,11 @@ public class FileServerThread extends Thread implements Runnable{
 				DataOutputStream dos = new DataOutputStream(client.getOutputStream());
                 DataInputStream dis = new DataInputStream(client.getInputStream());
                 
-                while(!setFileDone);
+                while(!setFileDone);  //should takePic first
                 
-                Log.d(TAG,String.valueOf(totalLength));
-				dos.writeInt(totalLength);
-				dos.flush();
+                //Log.d(TAG,String.valueOf(totalLength));
+				//dos.writeInt(totalLength);
+				//dos.flush();
 				
 				for(int i=0;i<8;i++){
 					dos.writeInt(fileLength[i]);
@@ -85,7 +85,7 @@ public class FileServerThread extends Thread implements Runnable{
 					}
 					dos.flush();
 					fis.close();
-                    if(dis.readUTF().equals("ok")){
+                    if(dis.readLine().equals("ok")){
                         Log.d(TAG,"client received file"+i);    
                     }
 				}

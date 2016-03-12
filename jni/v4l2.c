@@ -391,7 +391,7 @@ JNIEXPORT jint JNICALL Java_com_wx_imx53server_JniCamera_camSel(JNIEnv* env,
 	fd_gpio = open(GPIO_FILE, O_RDWR, S_IRUSR | S_IWUSR);
 	LOGI("fd_gpio is %d",fd_gpio);
 	ret = writeGPIO(3,CAMSEL,1);
-	usleep(1000);  //1ms
+	usleep(100000);  //100ms
 	ret = writeGPIO(3,CAMSEL,0);
 	close(fd_gpio);
 
@@ -462,7 +462,7 @@ JNIEXPORT jint JNICALL Java_com_wx_imx53server_JniCamera_prepareBuffer(JNIEnv* e
     }
     print_time();
 	//wait for stable
-    usleep(500000); //wait 500 ms
+    usleep(1000000); //wait 500 ms
 
 
 	return ret;
